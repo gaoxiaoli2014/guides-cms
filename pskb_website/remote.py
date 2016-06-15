@@ -726,7 +726,7 @@ def commits(path, branch=u'master'):
     return resp.data
 
 
-def file_contributors(path, branch=u'master'):
+def file_contributors(path, branch=u'master', commit_list=None):
     """
     Get dictionary of User objects representing authors and committers to a
     file
@@ -734,6 +734,9 @@ def file_contributors(path, branch=u'master'):
     :param path: Short-path to file (<dir>/.../<filename>) i.e. without repo
                  and owner
     :param branch: Name of branch to read contributors for
+    :param commit_list: Optional list of commit objects from API. If no commits
+                        are provided they will be retrieved via API otherwise
+                        contributors will be organized from given commits
     :returns: Dictionary of the following form::
 
         {'authors': set([(name, login), (name, login), ...]),
@@ -744,7 +747,9 @@ def file_contributors(path, branch=u'master'):
     """
 
     contribs = {'authors': set(), 'committers': set()}
-    data = commits(path, branch=branch)
+
+    if commit_list is None:
+        commit_list = commits(path, branch=branch)
 
     def _extract_data_from_commit(commit, key):
         login = commit[key]['login']
@@ -765,7 +770,7 @@ def file_contributors(path, branch=u'master'):
 
         return (author_name, commit[key]['login'])
 
-    for commit in data:
+    for commit in commit_list:
         contribs['authors'].add(_extract_data_from_commit(commit, 'author'))
         contribs['committers'].add(_extract_data_from_commit(commit, 'committer'))
 
